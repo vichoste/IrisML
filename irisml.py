@@ -7,7 +7,6 @@ Vicente Calderón
 """
 
 # Iris dataset and ID3 algorithm
-
 from math import log
 from pandas import read_csv, DataFrame
 from numpy import array, random
@@ -35,26 +34,23 @@ class DecisionTreeClassifier:
     def _get_entropy(self, x_ids):
         labels = [self.labels[i] for i in x_ids]
         label_count = [labels.count(x) for x in self.labelCategories]
-        entropy = sum([-count / len(x_ids) * log(count / len(x_ids), 2)
-                       if count else 0
-                       for count in label_count
-                       ])
+        entropy = sum([-count / len(x_ids) * log(count /
+                      len(x_ids), 2) if count else 0 for count in label_count])
         return entropy
 
     def _get_information_gain(self, x_ids, feature_id):
         info_gain = self._get_entropy(x_ids)
         x_features = [self.X[x][feature_id] for x in x_ids]
         feature_vals = list(set(x_features))
-        feature_v_count = [x_features.count(x) for x in feature_vals]
-        feature_v_id = [
+        feature_vals_count = [x_features.count(x) for x in feature_vals]
+        feature_vals_id = [
             [x_ids[i]
              for i, x in enumerate(x_features)
              if x == y]
             for y in feature_vals
         ]
-        info_gain_feature = sum([v_counts / len(x_ids) * self._get_entropy(v_ids)
-                                for v_counts, v_ids in zip(feature_v_count, feature_v_id)])
-        info_gain = info_gain - info_gain_feature
+        info_gain = info_gain - sum([val_counts / len(x_ids) * self._get_entropy(val_ids)
+                                     for val_counts, val_ids in zip(feature_vals_count, feature_vals_id)])
         return info_gain
 
     def _get_feature_max_information_gain(self, x_ids, feature_ids):
@@ -62,6 +58,11 @@ class DecisionTreeClassifier:
             x_ids, feature_id) for feature_id in feature_ids]
         max_id = feature_ids[features_entropy.index(max(features_entropy))]
         return self.feature_names[max_id], max_id
+
+    def id3(self):
+        x_ids = [x for x in range(len(self.X))]
+        feature_ids = [x for x in range(len(self.feature_names))]
+        self.node = self._id3_recv(x_ids, feature_ids, self.node)
 
     def _id3_recv(self, x_ids, feature_ids, node):
         if not node:
@@ -88,7 +89,6 @@ class DecisionTreeClassifier:
             if not child_x_ids:
                 child.next = max(set(labels_in_features),
                                  key=labels_in_features.count)
-                print('')
             else:
                 if feature_ids and best_feature_id in feature_ids:
                     to_remove = feature_ids.index(best_feature_id)
@@ -96,11 +96,6 @@ class DecisionTreeClassifier:
                 child.next = self._id3_recv(
                     child_x_ids, feature_ids, child.next)
         return node
-
-    def id3(self):
-        x_ids = [x for x in range(len(self.X))]
-        feature_ids = [x for x in range(len(self.feature_names))]
-        self.node = self._id3_recv(x_ids, feature_ids, self.node)
 
     def printTree(self):
         if not self.node:
@@ -123,6 +118,32 @@ if __name__ == "__main__":
     X = array(iris.drop('class', axis=1).copy())
     y = array(iris['class'].copy())
     feature_names = list(iris.keys())[:4]
+    decisionTree = DecisionTreeClassifier(
+        X=X, feature_names=feature_names, labels=y)
+    #print("Entropy: {:.4f}".format(decisionTree.entropy))
+    decisionTree.id3()
+    # decisionTree.printTree()
+    data = {
+        'wind_direction': ['N', 'S', 'E', 'W'],
+        'tide': ['Low', 'High'],
+        'swell_forecasting': ['small', 'medium', 'large'],
+        'good_waves': ['Yes', 'No']
+    }
+    data_df = DataFrame(columns=data.keys())
+
+    random.seed(42)
+    # randomnly create 1000 instances
+    for i in range(1000):
+        data_df.loc[i, 'wind_direction'] = str(
+            random.choice(data['wind_direction'], 1)[0])
+        data_df.loc[i, 'tide'] = str(random.choice(data['tide'], 1)[0])
+        data_df.loc[i, 'swell_forecasting'] = str(
+            random.choice(data['swell_forecasting'], 1)[0])
+        data_df.loc[i, 'good_waves'] = str(
+            random.choice(data['good_waves'], 1)[0])
+    X = array(data_df.drop('good_waves', axis=1).copy())
+    y = array(data_df['good_waves'].copy())
+    feature_names = list(data_df.keys())[:3]
     tree_clf = DecisionTreeClassifier(
         X=X, feature_names=feature_names, labels=y)
     print("System entropy {:.4f}".format(tree_clf.entropy))
