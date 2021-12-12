@@ -1,20 +1,27 @@
 System entropy 0.9995
-wind_direction
-(N)
-(E)
-(W)
-(S)
-tide
-(Low)
-(High)
-Yes
-No
-Yes
-swell_forecasting
-(large)
-(small)
-(medium)
-No
-Yes
-No
-No
+Level: 1 ) wind_direction
+Level: 1 -> E
+Level: 2 ) tide
+Level: 2 -> Low
+Level: 3 ) swell_forecasting
+Level: 3 -> large
+Level: 4 ) No
+END
+Level: 3 -> small
+Level: 4 ) No
+END
+Level: 3 -> medium
+Level: 4 ) No
+END
+Level: 2 -> High
+Level: 3 ) Yes
+END
+Level: 1 -> S
+Level: 2 ) Yes
+END
+Level: 1 -> N
+Level: 2 ) No
+END
+Level: 1 -> W
+Level: 2 ) No
+END

@@ -97,20 +97,24 @@ class DecisionTreeClassifier:
                     child_x_ids, feature_ids, child.next)
         return node
 
-    def printTree(self):
+    def print_tree(self):
         if not self.node:
             return
         nodes = deque()
         nodes.append(self.node)
-        while len(nodes) > 0:
-            node = nodes.popleft()
-            print(node.value)
-            if node.childs:
-                for child in node.childs:
-                    print('({})'.format(child.value))
-                    nodes.append(child.next)
-            elif node.next:
-                print(node.next)
+        self.print_tree_recv(nodes, 0)
+
+    def print_tree_recv(self, nodes, i):
+        i += 1
+        node = nodes.popleft()
+        print('Level: ' + str(i) + ' ) ' + node.value)
+        if node.childs:
+            for child in node.childs:
+                print('Level: ' + str(i) + ' -> ' + child.value)
+                nodes.append(child.next)
+                self.print_tree_recv(nodes, i)
+        else:
+            print('END')
 
 
 if __name__ == "__main__":
@@ -120,6 +124,31 @@ if __name__ == "__main__":
     feature_names = list(iris.keys())[:4]
     decisionTree = DecisionTreeClassifier(
         X=X, feature_names=feature_names, labels=y)
-    print("Entropy: {:.4f}".format(decisionTree.entropy))
+    # print("Entropy: {:.4f}".format(decisionTree.entropy))
     decisionTree.id3()
-    decisionTree.printTree()
+    # decisionTree.print_tree()
+    data = {
+        'wind_direction': ['N', 'S', 'E', 'W'],
+        'tide': ['Low', 'High'],
+        'swell_forecasting': ['small', 'medium', 'large'],
+        'good_waves': ['Yes', 'No']
+    }
+    data_df = DataFrame(columns=data.keys())
+    random.seed(42)
+    # randomnly create 1000 instances
+    for i in range(1000):
+        data_df.loc[i, 'wind_direction'] = str(
+            random.choice(data['wind_direction'], 1)[0])
+        data_df.loc[i, 'tide'] = str(random.choice(data['tide'], 1)[0])
+        data_df.loc[i, 'swell_forecasting'] = str(
+            random.choice(data['swell_forecasting'], 1)[0])
+        data_df.loc[i, 'good_waves'] = str(
+            random.choice(data['good_waves'], 1)[0])
+    X = array(data_df.drop('good_waves', axis=1).copy())
+    y = array(data_df['good_waves'].copy())
+    feature_names = list(data_df.keys())[:3]
+    tree_clf = DecisionTreeClassifier(
+        X=X, feature_names=feature_names, labels=y)
+    print("System entropy {:.4f}".format(tree_clf.entropy))
+    tree_clf.id3()
+    tree_clf.print_tree()
